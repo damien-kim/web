@@ -65,15 +65,20 @@ function addNewMovie(req, res){
         var newPath = imageDir + pathUtil.sep + newFileName; 
 
         fs.renameSync(poster.path, newPath);
-        var url = '/images' + newFileName; // /images/image-file-name.ext
+        var url = '/images/' + newFileName; // /images/image-file-name.ext
 
-        var info = {
-            title : title,
-            director : director,
-            year : year,
-            poster : url
+        const info = {
+            "title" : title,
+            "director" : director,
+            "year" : year,
+            "poster" : url
         };
         movieList.push(info);
+
+        const fileData = JSON.parse(fs.readFileSync('initialDB.json')); // read from file
+        fileData.push(info);
+        
+        fs.writeFileSync('initialDB.json', JSON.stringify(fileData, null, 2));// write the new data appended to the original 
 
         res.statusCode = 302;
         res.setHeader('Location', '.'); //'.' -> current directory
