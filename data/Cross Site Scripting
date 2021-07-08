@@ -1,0 +1,4 @@
+Hey. this is to demonstrate XSS
+<script>alert('damn it');
+location.href="https://google.com"
+</script>
