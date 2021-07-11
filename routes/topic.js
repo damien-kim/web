@@ -4,11 +4,16 @@ var router = express.Router(); // express가 보유한 Router()메소드를 호�
 var path = require('path');
 var fs = require('fs');
 var sanitizeHtml = require('sanitize-html');
-var template = require('../lib/template.js');
+// var template = require('../lib/template.js'); // for main_express
+var template = require('../lib/exp_sess_ck_template.js');
+var auth = require('../lib/auth');
 // var qs = require('querystring');
 
 router.get('/create', function(req, res){
-    //fs.readdir('./data', function(err,filelist){
+    if(!auth.isOwner(req, res)) {
+        res.redirect('/');
+        return false; // end the module so that the rest of the code won't be run
+    }
         const title = "Web - Create";
         let list = template.list(req.list);
         const html = template.HTML(title, list, ` 
@@ -21,12 +26,16 @@ router.get('/create', function(req, res){
                 <input type="submit">
             </p>
             </form>
-        `,'');
+        `,'',auth.statusUI(req, res));
         res.send(html);
     //});
 })
 
 router.post('/create_process', function(req, res){
+    if(!auth.isOwner(req, res)) {
+        res.redirect('/');
+        return false; // end the module so that the rest of the code won't be run
+    }
     let post = req.body;
     let title = post.title;
     let description = post.description;
@@ -37,9 +46,12 @@ router.post('/create_process', function(req, res){
 })
 
 router.get('/update/:pageId', function(req, res){
-    //fs.readdir('./data', function(err,filelist){
+    if(!auth.isOwner(req, res)) {
+        res.redirect('/');
+        return false; // end the module so that the rest of the code won't be run
+    }
         var filteredId = path.parse(req.params.pageId).base; // confine locations to /data/
-        fs.readFile(`/data/${filteredId}`, 'utf8', function (err, description) {
+        fs.readFile(`data/${filteredId}`, 'utf8', function (err, description) {
             var title = req.params.pageId;
             var sanitizedTitle = sanitizeHtml(title);
             var sanitizedDescription = sanitizeHtml(description);
@@ -57,62 +69,39 @@ router.get('/update/:pageId', function(req, res){
                 </p>
                 </form>
                 `,
-                `<a href="/topic/create">Create</a> <a href="/topic/update">Update</a>`
+                `<a href="/topic/create">Create</a> <a href="/topic/update">Update</a>`,
+                auth.statusUI(req, res)
                 );
             res.send(html);
         });
-    //});
 })
 
 router.post('/delete_process', function(req, res){
-    /* using bodyParser middleware !!
-    var body = '';
-    req.on('data', function(data){
-        body = body + data;
-    });
-    req.on('end', function(){
-        var post = qs.parse(body);
+    if(!auth.isOwner(req, res)) {
+        res.redirect('/');
+        return false; // end the module so that the rest of the code won't be run
+    }
+    var post = req.body;
         var id = post.id;
         var filteredId = path.parse(id).base;
         fs.unlink(`data/${filteredId}`, function(error){
             res.redirect('/');
         })
-    });
-    */
-var post = req.body;
-    var id = post.id;
-    var filteredId = path.parse(id).base;
-    fs.unlink(`../data/${filteredId}`, function(error){
-        res.redirect('/');
-    })
 });
 
 router.post('/update_process', function(req, res){
-/* using bodyParser middleware !!
-var body = '';
-req.on('data', function(data){
-    body = body + data;
-});
-req.on('end', function(){
-    var post = qs.parse(body);
-    var id = post.id;
-    var title = post.title;
-    var description = post.description;
+    if(!auth.isOwner(req, res)) {
+        res.redirect('/');
+        return false; // end the module so that the rest of the code won't be run
+    }
+    let post = req.body;
+    let id = post.id;
+    let title = post.title;
+    let description = post.description;
     fs.rename(`data/${id}`, `data/${title}`, function(error){
         fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-        res.redirect(`/page/${title}`);
+            res.redirect(`/topic/${title}`);
         })
-    });
-});
-*/
-let post = req.body;
-let id = post.id;
-let title = post.title;
-let description = post.description;
-fs.rename(`../data/${id}`, `../data/${title}`, function(error){
-    fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-        res.redirect(`/topic/${title}`);
-    })
     });
 });
 
@@ -134,7 +123,8 @@ router.get('/:pageId', function(req, res, next) {
                 <form action="/topic/delete_process" method="post">
                     <input type="hidden" name="id" value="${sanitizedTitle}">
                     <p><input type="submit" value="delete"></p>
-                </form>`
+                </form>`,
+                auth.statusUI(req, res)
                 );
             res.send(html); // json값으로 return
         }
