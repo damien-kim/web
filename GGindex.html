@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <title>GG Login</title>
+  <meta charset="utf-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="coloring.js"></script>
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <meta name="google-signin-client_id" content="23454760541-nvar91q0nr9i3hvo2nnvjufdr1163ujb.apps.googleusercontent.com">
+  </head>
+<body>
+  <div class="g-signin2" data-onsuccess="onSignIn"></div>
+  <h1><a href="index.html">WEB</a></h1>
+  <input type="button" value="day" onclick="NightDayHandler(this);">
+  <ol id="nav">
+  </ol>
+  <article>
+  <!-- this is to display sub-pages -->
+  </article>
+
+  <script>
+    function onSignIn(googleUser) {
+    var profile = googleUser.getBasicProfile();
+    console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+    console.log('Name: ' + profile.getName());
+    console.log('Image URL: ' + profile.getImageUrl());
+    console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+    }
+    
+    function fetchPage(name) {
+      fetch(name).then(function(response){
+        response.text().then(function(text){
+          document.querySelector('article').innerHTML = text;
+        })
+      })
+    }
+
+    if(location.hash) {
+      fetchpage(location.hash.substring(2));
+      
+    } else {
+      fetchPage('welcome');
+    }
+
+    fetch('list').then(function(response){
+      response.text().then(function(text){
+        document.querySelector('#nav').innerHTML = text;
+      })
+    });
+  </script>  
+</body>
+</html>
